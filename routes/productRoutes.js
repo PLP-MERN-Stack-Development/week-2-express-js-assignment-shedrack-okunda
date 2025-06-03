@@ -1,4 +1,5 @@
 const express = require("express");
+const validateProduct = require("../middleware/validateProduct");
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.get("/products/:id", (req, res) => {
 });
 
 // POST /api/products - Create a new product
-router.post("/products", (req, res) => {
+router.post("/products", validateProduct, (req, res) => {
   const { name, description, price, category, inStock } = req.body;
 
   const newProduct = {
@@ -66,7 +67,7 @@ router.post("/products", (req, res) => {
 });
 
 // PUT /api/products/:id - Update a product
-router.put("products/:id", (req, res) => {
+router.put("products/:id", validateProduct, (req, res) => {
   const { id } = req.params;
   const index = products.findIndex((p) => p.id === id);
 

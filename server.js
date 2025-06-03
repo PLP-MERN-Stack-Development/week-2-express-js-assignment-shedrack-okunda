@@ -1,26 +1,26 @@
-// Import required modules
 const express = require("express");
 const bodyParser = require("body-parser");
 const { v4: uuidv4 } = require("uuid");
 const router = require("./routes/productRoutes");
+const logger = require("./middleware/logger");
+const authenticate = require("./middleware/auth");
 
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware setup
+app.use(logger);
 app.use(express.json());
 app.use(bodyParser.json());
 
 // Root route
-app.use("/api", router);
+app.use("/api", authenticate, router);
 app.get("/", (req, res) => {
   res.send("Hello World.");
 });
 
 // TODO: Implement custom middleware for:
-// - Request logging
-// - Authentication
 // - Error handling
 
 // Start the server
