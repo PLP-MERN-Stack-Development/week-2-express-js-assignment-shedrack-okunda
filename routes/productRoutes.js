@@ -1,5 +1,7 @@
 const express = require("express");
 const validateProduct = require("../middleware/validateProduct");
+const { NotFoundError } = require("../utils/customErrors");
+const asyncHandler = require("../middleware/asyncHandler");
 
 const router = express.Router();
 
@@ -37,34 +39,41 @@ router.get("/products", (req, res) => {
 });
 
 // GET /api/products/:id - Get a specific product
-router.get("/products/:id", (req, res) => {
-  const { id } = req.params;
-  const product = products.find((p) => p.id === id);
+router.get(
+  "/products/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const product = products.find((p) => p.id === id);
 
-  if (!product) {
-    return res.status(404).json({ error: "Product not found." });
-  }
+    if (!product) {
+      return next(new NotFoundError("Product not found."));
+    }
 
-  res.json(product);
-});
+    res.json(product);
+  })
+);
 
 // POST /api/products - Create a new product
-router.post("/products", validateProduct, (req, res) => {
-  const { name, description, price, category, inStock } = req.body;
+router.post(
+  "/products",
+  validateProduct,
+  asyncHandler(async (req, res) => {
+    const { name, description, price, category, inStock } = req.body;
 
-  const newProduct = {
-    id: (products.length + 1).toString(),
-    name,
-    description,
-    price,
-    category,
-    inStock,
-  };
+    const newProduct = {
+      id: (products.length + 1).toString(),
+      name,
+      description,
+      price,
+      category,
+      inStock,
+    };
 
-  products.push(newProduct);
+    products.push(newProduct);
 
-  res.status(201).json(newProduct);
-});
+    res.status(201).json(newProduct);
+  })
+);
 
 // PUT /api/products/:id - Update a product
 router.put("products/:id", validateProduct, (req, res) => {

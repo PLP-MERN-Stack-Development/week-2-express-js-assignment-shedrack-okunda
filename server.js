@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require("uuid");
 const router = require("./routes/productRoutes");
 const logger = require("./middleware/logger");
 const authenticate = require("./middleware/auth");
+const errorHandler = require("./middleware/errorHandler");
+const { NotFoundError } = require("./utils/customErrors");
 
 // Initialize Express app
 const app = express();
@@ -20,8 +22,13 @@ app.get("/", (req, res) => {
   res.send("Hello World.");
 });
 
-// TODO: Implement custom middleware for:
-// - Error handling
+// handle 404 for unknown routes
+app.use((req, res, next) => {
+  next(new NotFoundError("Route not found."));
+});
+
+// global error handler
+app.use(errorHandler);
 
 // Start the server
 app.listen(PORT, () => {
