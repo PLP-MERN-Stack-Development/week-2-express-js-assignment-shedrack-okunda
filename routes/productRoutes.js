@@ -1,6 +1,6 @@
 const express = require("express");
 const validateProduct = require("../middleware/validateProduct");
-const { NotFoundError } = require("../utils/customErrors");
+const { NotFoundError, ValidationError } = require("../utils/customErrors");
 const asyncHandler = require("../middleware/asyncHandler");
 
 const router = express.Router();
@@ -35,13 +35,62 @@ let products = [
 
 // GET /api/products - Get all products
 router.get("/products", (req, res) => {
-  res.json(products);
+  const { category, page = 1, limit = 10 } = req.query;
+
+  let filteredProducts = products;
+
+  if (category) {
+    filteredProducts = filteredProducts.filter(
+      (p) => p.category.toLowerCase() === category.toLowerCase()
+    );
+  }
+
+  const startIndex = (parseInt(page) - 1) * parseInt(limit);
+  const endIndex = startIndex + parseInt(limit);
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  res.json({
+    currentPage: parseInt(page),
+    totalPages: Math.ceil(filteredProducts.length / limit),
+    totalItems: filteredProducts.length,
+    products: paginatedProducts,
+  });
+});
+
+// GET /api/products/search?name=...
+router.get("/products/search", (req, res, next) => {
+  const { name } = req.query;
+
+  if (!name) {
+    return next(new ValidationError("Search term 'name' is required."));
+  }
+
+  const searchTerm = name.toLowerCase();
+
+  const results = products.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm)
+  );
+
+  res.json({ total: results.length, results });
+});
+
+// GET /api/products/stats - Get product statistics
+router.get("/products/stats", (req, res) => {
+  const totalProducts = products.length;
+  const categories = {};
+
+  products.forEach((product) => {
+    const cat = product.category.toLowerCase();
+    categories[cat] = (categories[cat] || 0) + 1;
+  });
+
+  res.json({ totalProducts, categories });
 });
 
 // GET /api/products/:id - Get a specific product
 router.get(
   "/products/:id",
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const product = products.find((p) => p.id === id);
 
