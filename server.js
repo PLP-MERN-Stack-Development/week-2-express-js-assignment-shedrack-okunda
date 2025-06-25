@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const { v4: uuidv4 } = require("uuid");
 const router = require("./routes/productRoutes");
 const logger = require("./middleware/logger");
@@ -14,17 +13,16 @@ const PORT = process.env.PORT || 3000;
 // Middleware setup
 app.use(logger);
 app.use(express.json());
-app.use(bodyParser.json());
 
 // Root route
 app.use("/api", authenticate, router);
 app.get("/", (req, res) => {
-  res.send("Hello World.");
+	res.send("Hello World.");
 });
 
 // handle 404 for unknown routes
 app.use((req, res, next) => {
-  next(new NotFoundError("Route not found."));
+	next(new NotFoundError("Route not found."));
 });
 
 // global error handler
@@ -32,7 +30,7 @@ app.use(errorHandler);
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+	console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 // Export the app for testing purposes
